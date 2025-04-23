@@ -14,9 +14,9 @@ public class PostgresRepository<T> : IRepository<T> where T : class
         _dbSet = context.Set<T>();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync<T>()
+    public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync() as IEnumerable<T>;
+        return await _dbSet.ToListAsync();
     }
 
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate)

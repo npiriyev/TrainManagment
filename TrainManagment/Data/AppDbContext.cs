@@ -11,7 +11,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     {
     }
 
-    public DbSet<TrainComponents> TrainComponents { get; set; }
+    public DbSet<TrainComponent> TrainComponents { get; set; }
     
 }
 

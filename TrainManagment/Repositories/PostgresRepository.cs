@@ -1,14 +1,15 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using TrainManagment.Data;
 
 namespace TrainManagment.Repositories;
 
 public class PostgresRepository<T> : IRepository<T> where T : class
 {
-    private readonly DbContext _context;
+    private readonly AppDbContext _context;
     private readonly DbSet<T> _dbSet;
 
-    public PostgresRepository(DbContext context)
+    public PostgresRepository(AppDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _dbSet = context.Set<T>();
@@ -51,6 +52,11 @@ public class PostgresRepository<T> : IRepository<T> where T : class
     public async Task DeleteAsync(T entity)
     {
         _dbSet.Remove(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task SaveChangesAsync()
+    {
         await _context.SaveChangesAsync();
     }
 }

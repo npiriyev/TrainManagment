@@ -12,4 +12,8 @@ public interface IRepository<T> where T:class
     Task<T> UpdateAsync(T entity);
     Task DeleteAsync(T entity);
     Task SaveChangesAsync();
+    
+    Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, 
+        Expression<Func<T, bool>> filter = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null);
 }

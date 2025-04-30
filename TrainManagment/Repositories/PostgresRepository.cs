@@ -59,4 +59,38 @@ public class PostgresRepository<T> : IRepository<T> where T : class
     {
         await _context.SaveChangesAsync();
     }
+    
+    public async Task<(IEnumerable<T> items, int totalCount)> GetPagedAsync(int pageNumber, int pageSize, 
+        Expression<Func<T, bool>> filter = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null)
+    {
+        IQueryable<T> query = _dbSet;
+        
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
+    
+   
+        var totalCount = await query.CountAsync();
+    
+   
+        if (orderBy != null)
+        {
+            query = orderBy(query);
+        }
+        else
+        {
+          
+            query = query.OrderBy(e => EF.Property<int>(e, "Id"));
+        }
+    
+     
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    
+        return (items, totalCount);
+    }
 }

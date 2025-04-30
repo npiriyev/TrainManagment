@@ -6,10 +6,9 @@ using TrainManagment.Repositories;
 
 namespace TrainManagment.Controllers;
 
-// Fix 1: Simplify the routing - either use separate routes or pattern matching
 [ApiController]
 [Route("[controller]")]
-[Authorize] // Apply authorization to all endpoints by default
+[Authorize]
 public class ComponentManagmentController : ControllerBase
 {
     private readonly IRepository<TrainComponent> _repository;
@@ -23,7 +22,6 @@ public class ComponentManagmentController : ControllerBase
         _logger = logger;
     }
     
-    // Fix 2: Use specific HTTP verb and route
     [HttpPost("CreateComponent")]
     public async Task<IActionResult> CreateComponent([FromBody] CreateComponentModel item)
     {
@@ -36,7 +34,6 @@ public class ComponentManagmentController : ControllerBase
         
             if (dbItem == null)
             {
-                // Create new entity
                 var newEntity = new TrainComponent()
                 {
                     Id = item.Id,
@@ -49,7 +46,6 @@ public class ComponentManagmentController : ControllerBase
             }
             else
             {
-                // Update existing entity
                 dbItem.CanAssign = item.CanAssign;
                 dbItem.Name = item.Name;
                 dbItem.UniqueNumber = item.UniqueNumber;
@@ -58,8 +54,7 @@ public class ComponentManagmentController : ControllerBase
             }
     
             await _repository.SaveChangesAsync();
-        
-            // Return the created/updated entity
+            
             return Ok(new {
                 id = resultEntity.Id,
                 uniqueNumber = resultEntity.UniqueNumber,
@@ -74,9 +69,7 @@ public class ComponentManagmentController : ControllerBase
         }
     }
     
-    // Fix 3: Use proper HTTP GET attribute and explicit route
     [HttpGet("GetAll")]
-    [AllowAnonymous] // Test with this first, then change back to [Authorize]
     public async Task<ActionResult<IEnumerable<TrainComponent>>> GetAll()
     {
         _logger.LogInformation("GetAll called");
@@ -92,7 +85,6 @@ public class ComponentManagmentController : ControllerBase
         }
     }
     
-    // Fix 4: Use proper HTTP POST attribute and explicit route
     [HttpPost("UpdateComponent")]
     public async Task<ActionResult<TrainComponent>> UpdateComponent([FromBody] UpdateComponentModel item)
     {
@@ -120,7 +112,80 @@ public class ComponentManagmentController : ControllerBase
         }
     }
     
-    // Fix 5: Add a test endpoint that doesn't return data
+    [HttpPost("SearchByUniqueNumber")]
+    public async Task<ActionResult<TrainComponent>> SearchByUniqueNumber([FromBody] string item)
+    {
+        
+        try
+        {
+            var dbItem = await _repository.GetAsync(x => x.UniqueNumber == item);
+            if (dbItem != null)
+            {
+                return Ok(dbItem);
+            }
+            else
+            {
+                return NotFound(new { message = "Component not found" });
+            }
+        }catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while retrieving data" });
+        }
+    }
+    
+    [HttpPost("SearchByName")]
+    public async Task<ActionResult<IEnumerable<TrainComponent>>> SearchByName([FromBody] string item)
+    {
+        
+        try
+        {
+            var dbItem = await _repository.GetAllAsync(x => x.Name.Contains(item));
+            if (dbItem != null)
+            {
+                return Ok(dbItem);
+            }
+            else
+            {
+                return NotFound(new { message = "Component not found" });
+            }
+        }catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while retrieving data" });
+        }
+    }
+    
+    [HttpGet("GetPaged")]
+    public async Task<ActionResult<PaginatedResponse<TrainComponent>>> GetPaged([FromQuery] PaginationParameters parameters)
+    {
+        _logger.LogInformation($"GetPaged called with PageNumber: {parameters.PageNumber}, PageSize: {parameters.PageSize}");
+    
+        try
+        {
+            // Get paged data from repository
+            var (components, totalCount) = await _repository.GetPagedAsync(
+                parameters.PageNumber, 
+                parameters.PageSize,
+                null,
+                q => q.OrderBy(c => c.Id) 
+            );
+        
+            
+            var response = new PaginatedResponse<TrainComponent>(
+                components.ToList(),
+                totalCount,
+                parameters.PageNumber,
+                parameters.PageSize
+            );
+        
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in GetPaged");
+            return StatusCode(500, new { message = "An error occurred retrieving components" });
+        }
+    }
+    
     [HttpGet("Ping")]
     [AllowAnonymous]
     public IActionResult Ping()

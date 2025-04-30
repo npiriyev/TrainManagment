@@ -28,7 +28,6 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost]
-    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] AccountCreateModel model)
     {
         if (ModelState.IsValid)

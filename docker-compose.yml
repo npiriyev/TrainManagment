@@ -1,0 +1,63 @@
+﻿services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: trainmanagement-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trainmanagement
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # .NET 8 Web API
+  api:
+    build:
+      context: TrainManagment
+      dockerfile: Dockerfile
+    container_name: trainmanagement-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=trainmanagement;Username=postgres;Password=postgres;
+    ports:
+      - "5080:80"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Angular 19 Frontend
+  frontend:
+    build:
+      context: ./ManagementApp
+      dockerfile: Dockerfile
+    container_name: trainmanagement-frontend
+    depends_on:
+      - api
+    ports:
+      - "4200:4200"
+    environment:
+      - API_URL=http://localhost:5080 
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

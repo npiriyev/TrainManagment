@@ -1,23 +1,48 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 80
+EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["TrainManagment/TrainManagment.csproj", "TrainManagment/"]
-RUN dotnet restore "TrainManagment/TrainManagment.csproj"
+WORKDIR /app
+
+# Copy everything at once
 COPY . .
-WORKDIR "/src/TrainManagment"
-RUN dotnet build "TrainManagment.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
+# Restore dependencies
+RUN dotnet restore TrainManagment.sln
+
+# Build the project
+RUN dotnet build TrainManagment.sln -c Release -o /app/build
+
+# Publish the project
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "TrainManagment.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish TrainManagment.sln -c Release -o /app/publish
 
+# Set up EF migrations
+FROM build AS migration
+# Install EF Core tools
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Create migration script
+#RUN echo '#!/bin/bash \n\
+#    echo "Waiting for database to be ready..." \n\
+#    sleep 10 \n\
+#    echo "Running database migrations..." \n\
+#    cd TrainManagment \n\
+#    dotnet ef database update \n\
+#    echo "Migrations completed successfully."' > /app/migrate.sh && \
+#    chmod +x /app/migrate.sh
+
+# Final image
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TrainManagment.dll"]
+
+# Create entrypoint script
+RUN echo '#!/bin/bash \n\
+    dotnet TrainManagment.dll' > /app/entrypoint.sh && \
+    chmod +x /app/entrypoint.sh
+
+ENTRYPOINT ["/app/entrypoint.sh"]

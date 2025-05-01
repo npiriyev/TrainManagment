@@ -36,15 +36,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add token service
+
 builder.Services.AddScoped<TokenService>();
 
-// Configure Identity BEFORE authentication
+
 builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// Configure cookie auth to not redirect
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     // Completely disable cookie authentication redirects
@@ -83,17 +83,15 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false,
         ClockSkew = TimeSpan.Zero,
-        NameClaimType = "nameid", // Match claim type in token service
-        // Match roles if needed: RoleClaimType = "role",
+        NameClaimType = "nameid", 
+       
     };
-    
-    // FIX: Don't short-circuit response handling in JWT events
+
     options.Events = new JwtBearerEvents
     {
         OnChallenge = context =>
         {
-            // DO NOT call context.HandleResponse() which short-circuits the pipeline
-            // Just log the challenge
+    
             context.HttpContext.RequestServices
                 .GetRequiredService<ILogger<Program>>()
                 .LogWarning("JWT authentication challenge for {Method} {Path}",
@@ -102,7 +100,7 @@ builder.Services.AddAuthentication(options =>
             // Add a header for debug purposes
             context.Response.Headers.Append("X-Auth-Required", "true");
             
-            // Let the default challenge behavior continue
+      
             return Task.CompletedTask;
         },
         
@@ -126,14 +124,14 @@ builder.Services.AddAuthentication(options =>
                 "JWT Token validated for user: {Email} ({UserId})", 
                 email, userId);
             
-            // Log all claims for debugging
+    
             var claims = context.Principal?.Claims.Select(c => new { c.Type, c.Value }).ToList();
             logger.LogDebug("JWT Claims: {@Claims}", claims);
             
             return Task.CompletedTask;
         },
         
-        // Debug token extraction
+  
         OnMessageReceived = context =>
         {
             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
@@ -200,10 +198,10 @@ builder.Services.AddSwaggerGen(options =>
 // Build app
 var app = builder.Build();
 
-// FIX: Explicitly add routing middleware
+
 app.UseRouting();
 
-// Configure middleware pipeline
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -243,15 +241,39 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Add CORS before authentication
+
 app.UseCors("AllowAngular");
 
-// Authentication middleware MUST come before Authorization
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Map controllers
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        
+        // This will create the database if it doesn't exist
+        context.Database.EnsureCreated();
+        
+        // This will apply any pending migrations
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+        
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+    }
+}
 
 // Run the app
 app.Run();

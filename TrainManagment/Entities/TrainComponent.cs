@@ -13,4 +13,5 @@ public class TrainComponent
     
     [Range(0, int.MaxValue)] 
     public int? Quantity { get; set; } = null;
+    
 }

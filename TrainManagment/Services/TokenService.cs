@@ -22,16 +22,14 @@ public class TokenService
         var jwtSettings = _configuration.GetSection("JwtSettings");
         var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]);
         
-        // Fix 1: Use the EXACT claim types that JWT Bearer middleware expects
+        
         var claims = new List<Claim>
         {
             // Standard JWT claims
-            new Claim("nameid", user.Id), // This matches what JWT Bearer middleware looks for
-            new Claim("email", user.Email), // Simple email claim
-            new Claim("unique_name", user.UserName), // This matches what JWT Bearer middleware looks for
+            new Claim("email", user.Email), 
+            new Claim("unique_name", user.UserName), 
             
-            // Add role claims if needed
-            // new Claim(ClaimTypes.Role, "User"),
+         
         };
 
         _logger.LogInformation("Creating token for user {UserId} with claims: {@Claims}", 
@@ -49,8 +47,7 @@ public class TokenService
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var tokenString = tokenHandler.WriteToken(token);
-        
-        // Log token details for debugging (don't log entire token in production)
+      
         var jwtToken = new JwtSecurityToken(tokenString);
         _logger.LogInformation("Token created with expiry: {Expiry}", jwtToken.ValidTo);
         

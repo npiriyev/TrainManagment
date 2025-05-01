@@ -1,0 +1,24 @@
+<header>
+    <nav>
+        <div class="nav-left">
+            <span class="title">{{title()}}</span>
+        </div>
+        <!-- <div class="nav-center">
+            <span routerLink="/" class="nav-link">Home</span>
+            <span routerLink="table" class="nav-link">Table</span>
+        </div> -->
+        <div class="nav-right">
+            <!-- Show these when not authenticated -->
+            <ng-container *ngIf="!authService.isAuthenticated()">
+                <button class="auth-link" (click)="openLoginModal(); $event.stopPropagation()">Log In</button>
+                <button class="auth-link" (click)="openSignModal(); $event.stopPropagation()">Sign Up</button>
+            </ng-container>
+            
+            <!-- Show these when authenticated -->
+            <ng-container *ngIf="authService.isAuthenticated()">
+                <span class="user-email">{{userEmail}}</span>
+                <button class="auth-link logout-btn" (click)="logout()">Logout</button>
+            </ng-container>
+        </div>
+    </nav>
+</header>

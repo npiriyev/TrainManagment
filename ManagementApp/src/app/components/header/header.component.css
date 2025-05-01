@@ -1,0 +1,74 @@
+header {
+  background-color: #333;
+  color: white;
+  height: 60px;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-center {
+  display: flex;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 0;
+}
+
+.nav-link {
+  margin-left: 20px;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  color: #ccc;
+}
+
+.nav-right {
+  display: flex;
+}
+
+.auth-link {
+  margin-left: 20px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.auth-link:first-child {
+  border: 1px solid white;
+}
+
+.auth-link:last-child {
+  background-color: white;
+  color: #333;
+}
+
+.auth-link:hover {
+  opacity: 0.9;
+}
+
+.user-email {
+  margin-right: 10px;
+  padding: 4px 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.logout-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.logout-btn:hover {
+  background-color: #d32f2f;
+}

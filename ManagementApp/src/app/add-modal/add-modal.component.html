@@ -1,0 +1,81 @@
+<div class="modal-backdrop" (click)="onClose()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <!-- Wrap in a form to properly handle Enter key -->
+      <form (ngSubmit)="isValid() && onAdd()" #addForm="ngForm">
+        <div class="modal-header">
+          <h2>Add New Train Component</h2>
+          <button type="button" class="close-button" (click)="onClose()">×</button>
+        </div>
+        
+        <div class="modal-body">
+
+            <div class="form-group">
+                <label for="trainName">Id *</label>
+                <input 
+                  type="text" 
+                  id="id" 
+                  name="id"
+                  [(ngModel)]="id" 
+                  placeholder="Enter Id"
+                  class="form-control"
+                  required
+                  #nameInput="ngModel"
+                />
+                <div *ngIf="validationErrors" class="error">
+                    ID must be a positive integer number'
+                  </div>
+              </div>
+
+          <div class="form-group">
+            <label for="trainName">Name *</label>
+            <input 
+              type="text" 
+              id="trainName" 
+              name="trainName"
+              [(ngModel)]="name" 
+              placeholder="Enter name"
+              class="form-control"
+              required
+              #nameInput="ngModel"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="uniqueNumber">Unique Number *</label>
+            <input 
+              type="text" 
+              id="uniqueNumber" 
+              name="uniqueNumber"
+              [(ngModel)]="uniqueNumber" 
+              placeholder="Enter unique identifier"
+              class="form-control"
+              required
+              #uniqueNumberInput="ngModel"
+            />
+          </div>
+          
+          <div class="form-group checkbox-group">
+            <input 
+              type="checkbox" 
+              id="canAssign" 
+              name="canAssign"
+              [(ngModel)]="canAssign"
+              class="form-checkbox"
+            />
+            <label for="canAssign">Can Assign Quantity</label>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="cancel-button" (click)="onClose()">Cancel</button>
+          <button 
+            type="submit"
+            class="add-button" 
+            [disabled]="!isValid()"
+          >
+            Add
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>

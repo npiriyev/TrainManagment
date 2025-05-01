@@ -1,0 +1,17 @@
+
+
+<app-listview />
+
+
+<app-signup 
+    *ngIf="authService.showSignupModal()" 
+    (close)="authService.closeSignupModal()" 
+    (sign)="authService.sign($event)">
+</app-signup>
+
+<app-login 
+    *ngIf="authService.showLoginModal()" 
+    (close)="authService.closeLoginModal()" 
+    (login)="authService.login($event)">
+</app-login>
+

@@ -1,0 +1,118 @@
+<div *ngIf="authService.isAuthenticated()">
+
+  <div class="controls-container">
+    <!-- Search bars - horizontally aligned -->
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <input 
+          type="text" 
+          [(ngModel)]="nameSearchTerm" 
+          (keyup.enter)="applyFilter()"
+          placeholder="Search by name" 
+          class="search-input"
+        />
+        <button (click)="clearNameSearch()" *ngIf="nameSearchTerm" class="clear-button">✕</button>
+      </div>
+      
+      <div class="search-input-wrapper">
+        <input 
+          type="text" 
+          [(ngModel)]="numberSearchTerm" 
+          (keyup.enter)="applyFilter()"
+          placeholder="Search by unique code" 
+          class="search-input"
+        />
+        <button (click)="clearNumberSearch()" *ngIf="numberSearchTerm" class="clear-button">✕</button>
+      </div>
+    </div>
+  
+    <!-- Add button with green plus icon -->
+    <button (click)="openAddModal()" class="add-button">
+      <span class="plus-icon">+</span>
+      <span>Add Component</span>
+    </button>
+  </div>
+
+  <!-- Loading indicator -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading components...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error || searchError" class="error-container">
+    <p class="error-message">{{ error || searchError }}</p>
+  </div>
+
+  <!-- Show search mode indicator when searching -->
+  <div *ngIf="isSearchMode && !loading" class="search-mode-indicator">
+    <p>
+      Showing search results
+      <button (click)="clearNameSearch(); clearNumberSearch();" class="btn-clear-search">Clear Search</button>
+    </p>
+  </div>
+
+  <!-- train-table -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="train-table">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Unique Number</th>
+          <th>Can Assign Quantity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let train of pagedTrains" 
+            (click)="openEditModal(train)"
+            [class.clickable]="isEditable(train)">
+          <td>{{train.id}}</td>
+          <td>{{train.name}}</td>
+          <td>{{train.uniqueNumber}}</td>
+          <td>{{train.canAssignQuantity}}</td>
+        </tr>
+        <tr *ngIf="pagedTrains.length === 0">
+          <td colspan="4" class="no-results">No components found</td>
+        </tr>
+      </tbody>
+    </table>
+  
+    <!-- Pagination controls -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button [disabled]="currentPage === 1 || loading" (click)="previousPage()">Previous</button>
+      <button *ngFor="let page of getPageNumbers()" 
+              [class.active]="page === currentPage"
+              [disabled]="loading"
+              (click)="goToPage(page)">
+        {{page}}
+      </button>
+      <button [disabled]="currentPage === totalPages || loading" (click)="nextPage()">Next</button>
+    </div>
+    
+    <!-- Pagination info -->
+    <div class="pagination-info" *ngIf="totalItems > 0">
+      Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ currentPage * pageSize > totalItems ? totalItems : currentPage * pageSize }} of {{ totalItems }} items
+    </div>
+  </div>
+
+</div>
+
+<!-- Content only visible to non-authenticated users -->
+<div *ngIf="!authService.isAuthenticated()">
+  <p style="text-align: center; color: red; font-size: 20px; margin-top: 50px;">Please log in to see secure content.</p>
+</div>
+
+<app-edit-modal 
+  *ngIf="showModal" 
+  [train]="selectedTrain"
+  [quantity]="tempQuantity"
+  (close)="closeModal()"
+  (save)="saveQuantity($event)">
+</app-edit-modal>
+
+<app-add-modal
+  *ngIf="showAddModal"
+  (close)="closeAddModal()"
+  (add)="addComponent($event)">
+</app-add-modal>
